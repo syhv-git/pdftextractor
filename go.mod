@@ -1,4 +1,4 @@
-module pdftextractor
+module github.com/syhv-git/pdftextractor
 
 go 1.19
 
