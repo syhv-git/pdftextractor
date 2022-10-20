@@ -11,9 +11,11 @@ go get -u github.com/syhv-git/pdftextractor
 ```
 You will also need to download `tesseract-ocr` and `libtesseract-dev` (`tesseract-ocr-dev` for apk). You can add more language data to `/usr/share/tesseract-ocr/$VERSION/tessdata/`
 
+> There may be dependency issues with the Gosseract package. This will require the linux mint package from the same developer
+
 ## Roadmap
 * Decode PDF string objects and extract the raw text
 * Test with PDFs containing images
 * Test with an Image based PDF file
 * Test interoperability with other PDF versions
-* optimize the codebase
+* Optimize the codebase
