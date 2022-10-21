@@ -15,7 +15,13 @@ You will also need to download `tesseract-ocr` and `libtesseract-dev` (`tesserac
 
 ## Roadmap
 * Decode PDF string objects and extract the raw text
+  * Narrowed issues down to font encoding and cmaps
+  * Everything before decodeText() works as expected
+* Optimize the codebase
+
+
 * Test with PDFs containing images
 * Test with an Image based PDF file
 * Test interoperability with other PDF versions
-* Optimize the codebase
+* Test various encoding types and font styles
+* Test various string object encodings

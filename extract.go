@@ -29,62 +29,68 @@ func ExtractText(src string, incl bool) []byte {
 	o := getObjectOrder(objs)
 	buf := &bytes.Buffer{}
 	for _, x := range o {
-		if _, err = buf.Write(objs[x].content); err != nil {
-			log.Fatal(err.Error())
-		}
+		buf.Write(objs[x].content)
 	}
-
 	return buf.Bytes()
 }
 
 func extractObject(objs objMap, rdr *bufio.Reader, curr uint64) {
+	buf := &bytes.Buffer{}
 	img := false
+
 	for {
 		b, err := rdr.ReadBytes('\n')
 		if err != nil {
 			delete(objs, curr)
 			return
 		}
-		if bytes.Contains(b, endObj) {
-			return
-		}
-		if bytes.Contains(b, typ) {
-			objs[curr].setType(b)
-			if objs[curr].typ == "Pages" {
-				head = curr
-			}
-		}
+		buf.Write(b)
 
-		if bytes.Contains(b, filter) {
-			objs[curr].setFilter(b)
-		}
-		if bytes.Contains(b, length) {
-			objs[curr].setLength(b)
-		}
-		if bytes.Contains(b, indirect) {
-			objs[curr].setReferences(b)
-		}
-		if bytes.Contains(b, image) && includeImages {
-			img = true
+		if bytes.Contains(b, endObj) {
+			break
 		}
 		if bytes.Contains(b, stream) {
-			rawrdr := extractStreamContent(rdr)
-			if img {
-				tmp := extractImage(rawrdr, objs[curr])
-				c := gosseract.NewClient()
-				if err = c.SetImageFromBytes(tmp); err != nil {
-					log.Fatal(err.Error())
-				}
-				txt, err := c.Text()
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-				objs[curr].content = []byte(txt)
-				return
+			break
+		}
+	}
+
+	b := buf.Bytes()
+	if bytes.Contains(b, typ) {
+		objs[curr].setType(b)
+		if objs[curr].typ == "Pages" {
+			head = curr
+		}
+	}
+
+	if bytes.Contains(b, filter) {
+		objs[curr].setFilter(b)
+	}
+	if bytes.Contains(b, length) {
+		objs[curr].setLength(b)
+	}
+	if bytes.Contains(b, indirect) {
+		objs[curr].setReferences(b)
+	}
+	if bytes.Contains(b, image) && includeImages {
+		img = true
+	}
+	if bytes.Contains(b, stream) {
+		rawrdr := extractStreamContent(rdr)
+		if img {
+			tmp := extractImage(rawrdr, objs[curr])
+			c := gosseract.NewClient()
+			if err := c.SetImageFromBytes(tmp); err != nil {
+				log.Fatal(err.Error())
 			}
-			objs[curr].content = decoder(rawrdr, objs[curr].filter)
+			txt, err := c.Text()
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			objs[curr].content = []byte(txt)
 			return
 		}
+		objs[curr].content = decoder(rawrdr, objs[curr].filter)
+		return
 	}
 }
 
@@ -99,18 +105,18 @@ func extractStreamContent(rdr *bufio.Reader) *bufio.Reader {
 		if bytes.Contains(ln, endStream) {
 			return bufio.NewReader(buf)
 		}
-		if _, err = buf.Write(ln); err != nil {
-			log.Fatal(err.Error())
-		}
+		buf.Write(ln)
 	}
 }
 
 func extractImage(rdr *bufio.Reader, obj *objDict) []byte {
 	switch {
-	case strings.Contains(obj.filter, "JPEG"):
-		return decodeJPEG(rdr)
 	case strings.Contains(obj.filter, zip):
 		return decodeZLibStream(rdr)
+	case strings.Contains(obj.filter, "DCTDecode"):
+		return decodeJPEG(rdr)
+	case strings.Contains(obj.filter, "JPEG"):
+		return decodeJPEG(rdr)
 	default:
 		return nil
 	}

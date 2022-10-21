@@ -15,15 +15,18 @@ var (
 )
 
 var (
-	edition  = []byte("%PDF-")
+	baseenc  = []byte("/BaseEncoding")
+	diff     = []byte("/Differences")
 	filter   = []byte("/Filter")
-	typ      = []byte("/Type")
 	image    = []byte("/Image")
-	length   = []byte("/Length ")
 	indirect = []byte(" 0 R")
+	length   = []byte("/Length ")
+	touni    = []byte("/ToUnicode")
+	typ      = []byte("/Type")
 )
 
 var (
+	edition   = []byte("%PDF-")
 	newObj    = []byte(" 0 obj")
 	endObj    = []byte("endobj")
 	stream    = []byte("stream")
@@ -40,6 +43,7 @@ var (
 
 type objDict struct {
 	typ     string
+	base    string
 	filter  string
 	refs    refMap
 	length  uint64
@@ -49,6 +53,23 @@ type objDict struct {
 type refMap map[string][]uint64
 
 type objMap map[uint64]*objDict
+
+func (o *objDict) setBaseEncoding(b []byte) {
+	_, r, f := bytes.Cut(b, baseenc)
+	if !f {
+		return
+	}
+	m := strings.Split(string(r), "/")
+	if len(m) < 2 {
+		return
+	}
+
+	v := m[1]
+	if v[len(v)-1] == '\n' {
+		v = v[:len(v)-1]
+	}
+	o.base = v
+}
 
 func (o *objDict) setType(b []byte) {
 	_, r, f := bytes.Cut(b, typ)
