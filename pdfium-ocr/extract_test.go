@@ -1,4 +1,4 @@
-package pdfium_implementation
+package pdfium_ocr
 
 import (
 	"fmt"
