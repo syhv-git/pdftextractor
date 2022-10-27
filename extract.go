@@ -115,7 +115,7 @@ func extractImage(rdr *bufio.Reader, obj *objDict) []byte {
 		return decodeZLibStream(rdr)
 	case strings.Contains(obj.filter, "DCTDecode"):
 		return decodeJPEG(rdr)
-	case strings.Contains(obj.filter, "JPEG"):
+	case strings.Contains(obj.filter, "JPXDecode"):
 		return decodeJPEG(rdr)
 	default:
 		return nil
