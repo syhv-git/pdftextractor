@@ -12,8 +12,6 @@ import (
 func ExtractText(src string) []byte {
 	render.InitLibrary()
 	defer render.DestroyLibrary()
-	c := gosseract.NewClient()
-	defer c.Close()
 
 	b, err := os.ReadFile(src)
 	if err != nil {
@@ -26,6 +24,8 @@ func ExtractText(src string) []byte {
 	}
 	defer doc.Close()
 
+	c := gosseract.NewClient()
+	defer c.Close()
 	txt := &bytes.Buffer{}
 	for i, j := 1, doc.GetPageCount(); i <= j; i++ {
 		buf := &bytes.Buffer{}
